@@ -16,6 +16,7 @@ public enum GSMessageType {
 }
 
 public enum GSMessagePosition {
+    case topTransparentNavigation
     case top
     case bottom
 }
@@ -413,7 +414,20 @@ public class GSMessage: NSObject {
     func calculatePosition() {
         
         switch position {
-            
+        case .topTransparentNavigation:
+            y = max(0 - inView.frame.origin.y, 0)
+            if let vc = inViewController {
+                offsetY += margin.top
+                if #available(iOS 11.0, *) {
+                    offsetY += vc.view.safeAreaInsets.top
+                    break
+                }
+                if vc.edgesForExtendedLayout == [] {
+                    break
+                }
+                let statusBarHeight = UIApplication.shared.statusBarFrame.height
+                offsetY += statusBarHeight
+            }
         case .top:
             y = max(0 - inView.frame.origin.y, 0)
             
@@ -481,8 +495,8 @@ public class GSMessage: NSObject {
             corners = [.topLeft, .topRight, .bottomLeft, .bottomRight]
         } else {
             switch position {
-            case .top:      corners = [.bottomLeft, .bottomRight]
-            case .bottom:   corners = [.topLeft, .topRight]
+            case .top, .topTransparentNavigation: corners = [.bottomLeft, .bottomRight]
+            case .bottom: corners = [.topLeft, .topRight]
             }
         }
         
